@@ -194,7 +194,7 @@ class Cell:
         #TODO: terminar de definir como hacer la funcion de la tabla q
         valor_estado_accion = self.q_table[index_estado][index_accion]
 
-        valor_final = valor_estado_accion + learning_rate * (recompensa + discount_factor * )
+        valor_final = valor_estado_accion + learning_rate * (recompensa + discount_factor * ) #TODO: terminar de hacer esto
 
     def compare_health_status(self,health_status_ant,health_status_act):
         """
@@ -317,6 +317,22 @@ class Entorno:
         self.cells_list = cells_list
         self.food_list = food_list
 
+    def get_food(self, id):
+        
+        for food in self.food_list:
+            if food.id == id:
+                return food
+        return None
+    
+    def find_food_index_by_id(food_list, id):
+        for index, food in enumerate(food_list):
+            if food.id == id:
+                return index
+        return None  
+    
+    def remove_food(self, id): # TODO: implementar o borrar, segun si puedo usarlo
+        ...
+
 
 class Food_object:
 
@@ -428,8 +444,7 @@ class Actions:
     def run_away(self,cell:Cell, *args):
         ...
 
-    def eat(self, cell: Cell, *args):
-        # TODO: shorter foods como atributo de la celula
+    def eat(self, cell: Cell, entorno: Entorno, *args):
         shorter_foods = cell.shorter_foods
         if shorter_foods[0].food_reserve > 10:
             cell.food += 10
@@ -442,14 +457,18 @@ class Actions:
             cell.food = cell.max_food
         
         if shorter_foods[0].food_reserve == 0:
-            shorter_foods.remove(0) #TODO: tengo que borrar la comida
+            cell.shorter_foods[1:] # TODO: terminar de borrar del entorno la comida
+            id = shorter_foods[0].id
+            comidas = entorno.food_list
+            index = entorno.find_food_index_by_id(id)
+            entorno.food_list.pop(index) #TODO: comprobar que lo borra bien
 
-    def search_food(self, cell: Cell = None):
+    def search_food(self, cell: Cell = None, *args):
         ...
         
     # Important actions
 
-    def avoid_collision(self, cell: Cell, entorno: Entorno):
+    def avoid_collision(self, cell: Cell, entorno: Entorno, *args):
         cells = entorno.cells_list
         for other_cell in cells:
             if other_cell.id != cell.id:
@@ -474,8 +493,7 @@ class Actions:
                     cell.position_x -= dx / distance * overlap / 2
                     cell.position_y -= dy / distance * overlap / 2
     
-    def check_food(self, cell: Cell, entorno: Entorno):
-        #TODO: max distance tiene que ser parte del individuo
+    def check_food(self, cell: Cell, entorno: Entorno, *args):
         # Comprueba si la comida está suficientemente cerca como para comer
         # Devuelve las comidas más cercanas ordenadas por distancia
 
