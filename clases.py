@@ -86,30 +86,24 @@ class Cell(threading.Thread):
             shorter_foods, food_distances = Actions().check_food(self, self.entorno)
             self.shorter_foods = shorter_foods  # Actualizo shorter foods
 
-            estados_ant = self.get_combined_state()
-            atributos_ant = self.get_main_attributes()
-            estado_ant = self.get_state(estados_ant)
-            '''exploration_factor = (
-                self.calculate_exploration_factor()
-            ) '''  # Calcula el exploration_factor
-            exploration_factor = self.entorno.exploration_factor
+            estados = self.get_states() #Obtiene el estado de cada atributo
+
+            estado_ant = self.get_state(estados) # Obtiene el estado a partir del orden de estados
+            
+            exploration_factor = self.entorno.exploration_factor # TODO: esto deberia limpiarlo de aqui
             # Genera un número aleatorio entre 0 y 1
             random_value = random_generator.random()
             if random_value < exploration_factor:
                 accion = self.actions[random_generator.randint(
                     0, len(self.actions) - 1)]
             else:
-                accion = self.get_action_from_state(estados_ant)
-
-            estados_act = self.get_combined_state()
-            atributos_ant = self.get_main_attributes()
+                accion = self.get_action_from_state(estado_ant)
             self.update_qtable(accion)
             Actions().avoid_collision(self, self.entorno)
             self.life_update()
             # Controlar la velocidad del hilo (30 ms)
-            time.sleep(0.0000000000000000000001)
-            """
-            """
+            time.sleep(0.0001)
+            
 
     def read_q_table_from_txt(self):
         """
@@ -185,9 +179,9 @@ class Cell(threading.Thread):
             
         
         except FileNotFoundError:
-            n_estados = len(HEALTH_STATUS) * \
-                len(HUNGER_STATUS) * len(ENERGY_STATUS) * \
-                len(SEXUAL_STATUS) * len(FOOD_STATUS)
+            n_estados = len(HEALTH_STATUS) + \
+                len(HUNGER_STATUS) + len(ENERGY_STATUS) + \
+                len(SEXUAL_STATUS) + len(FOOD_STATUS)
             self.q_table = np.zeros((n_estados, len(self.actions)))
         except IndexError:
             print(f"--¡ERROR!-- [TABLA {self.id}]: Ha petado al acceder al indice.")
@@ -227,15 +221,22 @@ class Cell(threading.Thread):
         Genera todas las combinaciones posibles de estados de vida, hambre, energía,
         cercanía de comida y estado sexual.
         """
-        return list(
-            itertools.product(
-                HEALTH_STATUS.values(),
-                HUNGER_STATUS.values(),
-                ENERGY_STATUS.values(),
-                FOOD_STATUS.values(),
-                SEXUAL_STATUS.values(),
-            )
+
+        combined_list = (
+            list(HEALTH_STATUS.values())
+            + list(HUNGER_STATUS.values())
+            + list(ENERGY_STATUS.values())
+            + list(FOOD_STATUS.values())
+            + list(SEXUAL_STATUS.values())
         )
+
+        # Mezclar la lista combinada
+        random.shuffle(combined_list)
+
+        # Devolver la lista mezclada
+        return combined_list
+                
+        
 
     def write_states_order_to_file(self, file_path="states_order.txt"):
         """
@@ -264,7 +265,9 @@ class Cell(threading.Thread):
                                  for line in contenido.strip().splitlines()]
 
         except FileNotFoundError:
+            print("Genero states order")
             self.states_order = self.generate_states_order()
+            print(f"Orden: {str(self.states_order)[:200]}")
 
     def print_q_table(self):
         for state_idx, state in enumerate(self.q_table):
@@ -291,6 +294,7 @@ class Cell(threading.Thread):
     def get_main_attributes(self):
         _, food_distances = Actions().check_food(self, self.entorno)
         _, partner_distances = Actions().check_partner(self, self.entorno)
+
         return {
             "health": self.health,
             "energy": self.energy,
@@ -409,9 +413,11 @@ class Cell(threading.Thread):
         Recibe el diccionario con los estados de la celula de cada tipo y devuelve
         el "estado real"
         """
+
         for state in self.states_order:
-            if state in states_dict:
+            if state in states_dict.values():
                 return state
+            
 
     def get_best_action(self, puntuaciones: list):
         """
@@ -432,7 +438,7 @@ class Cell(threading.Thread):
         # print("Indice: " + str(indice))
         return self.actions[indice]
 
-    def get_action_from_state(self, states):
+    def get_action_from_state(self, state):
         """
 
         Recibe el diccionario con los estados de la celula y devuelve la MEJOR accion a realizar basandose
@@ -441,7 +447,7 @@ class Cell(threading.Thread):
         States_dict contiene los estados de la celula de cada uno de los tipos (energia, salud, etc.)
         """
         try:
-            index = self.states_order.index(states)  # Indice del estado actual
+            index = self.states_order.index(state)  # Indice del estado actual
             # Tabla del estado
             tabla_puntuaciones = self.q_table[index]
         except IndexError as ex:
@@ -449,8 +455,9 @@ class Cell(threading.Thread):
             print(f"Error: {str(ex)}")
             print(f"Tabla q: {self.q_table}")
             print(f"Tamaño tabla q: {len(self.q_table)}")
-            print(f"States: {states}")
+            print(f"States: {state}")
             print(f"Indice: {index}\n")
+
         return self.get_best_action(tabla_puntuaciones)
 
     def calculo_pesos(self, estados):
@@ -568,12 +575,14 @@ class Cell(threading.Thread):
         """
 
         # Obtener atributos antes de la acción
-        estado_ant = self.get_combined_state()
+        #estado_ant = self.get_combined_state()
         estados_antes_accion = self.get_states()
+        estado_ant = self.get_state(estados_antes_accion)
         atributos_ant = self.get_main_attributes()
         accion(self, self.entorno)  # Realizo la acción
         atributos_act = self.get_main_attributes()
-        estado_act = self.get_combined_state()
+        estados_antes_accion = self.get_states()
+        estado_act = self.get_state(estados_antes_accion)
         # Comparación de los atributos antes y después de la acción
         delta_health = atributos_act["health"] - atributos_ant["health"]
         delta_energy = atributos_act["energy"] - atributos_ant["energy"]

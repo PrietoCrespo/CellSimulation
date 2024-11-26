@@ -51,6 +51,7 @@ def write_q_table_to_txt(q_table, acciones, states_order, file_path="./Tablas/q_
         with open(file_path, "w") as file:
             file.writelines(contenido)
 
+
 def calculate_exploration_factor(iteracion):
         initial_exploration = 1.0  # Comienza explorando mucho
         decay_rate = 0.995  # Disminuye progresivamente
@@ -164,112 +165,7 @@ def clase_prueba_simulacion():
     entorno.write_tables_to_file()
     pygame.quit()
 
-# TODO: meterle velocidad en base a la edad que tenga
 
-# Inicializar Pygame
-    pygame.init()
-
-    # Dimensiones de la ventana
-    win = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Simulación de Células")
-
-    # Crear una lista de células y de comida
-    cells = []
-    foods = []
-
-
-
-    # Generar todas las combinaciones posibles de los estados
-    all_combinations = list(
-    itertools.product(
-        HEALTH_STATUS.values(),
-        HUNGER_STATUS.values(),
-        ENERGY_STATUS.values(),
-        FOOD_STATUS.values(),
-        SEXUAL_STATUS.values(),
-    )
-    )
-
-    acciones = [
-            Actions().search_food,
-            Actions().search_partner,
-            Actions().to_breed,
-            Actions().rest,
-            Actions().eat,
-            Actions().explore
-    ]
-    # Lista células
-    for id in range(INITIAL_CELLS_NUMBER):
-        multiplicadores = {
-            "impulsito": 1.05,
-            "longevidad": 1.05,
-            "percepcion": 1.05,
-        }
-        random_generator.shuffle(all_combinations)
-        cell = Cell(
-            id = id,
-            position_x=random_generator.randint(0, WIDTH),
-            position_y=random_generator.randint(1, HEIGHT),
-            radius=RADIUS,
-            color=RED,
-            speed_x=3,
-            speed_y=3,
-            health=100,
-            age=0,
-            hunger=20,  # Saciado
-            energy=100,
-            libid=0,
-            herencia=multiplicadores,
-            actions=acciones,
-        )
-        cells.append(cell)
-
-    # Lista comida
-    for _ in range(INITIAL_FOOD_NUMBER):
-        food = Food_object(
-            position_x=random_generator.randint(0, WIDTH),
-            position_y=random_generator.randint(1, HEIGHT),
-            color=GREEN,
-            food_reserve=200,
-            radius=RADIUS,
-            energy_of_food=10,
-            satiating_value=10,
-        )
-        foods.append(food)
-
-    entorno = Entorno(
-        cells_list=cells, food_list=foods, exploration_factor=0
-    )  
-
-    entorno.next_id = INITIAL_CELLS_NUMBER
-
-    for cell in cells:
-        cell.entorno = entorno  # Ahora asignamos el entorno a cada célula
-        cell.start()  # Iniciar el hilo de cada célula
-
-    # Bucle principal
-    running = True
-    print("Se ejecuta el bucle principal")
-    while running:
-        #pygame.time.delay(30)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        win.fill(BROWN)
-
-        # Dibujar las células y la comida
-        for cell in cells:
-            if cell.alive:
-                cell.draw(win)
-
-        for food in foods:
-            food.draw(win)
-
-        pygame.display.update()
-
-    pygame.quit()
 
 def entrenamiento_escritura_tablas():
    
@@ -288,7 +184,7 @@ def entrenamiento_escritura_tablas():
 
     # Bucle principal
     running = True
-    iteraciones = 50000
+    iteraciones = 5000
     pygame.init()
     
     for iteracion in range(iteraciones):
@@ -496,8 +392,8 @@ def escritura_tabla_completa():
     )
 
 if __name__ == "__main__":
-    clase_prueba_simulacion()
-    #entrenamiento_escritura_tablas()
+    #clase_prueba_simulacion()
+    entrenamiento_escritura_tablas()
     #escritura_tabla_completa()
 
 #TODO: tener en cuenta que la tabla se guarda segun el orden, asi que igual se deberia guardar tmb eso en el fichero de texto

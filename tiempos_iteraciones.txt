@@ -1633,3 +1633,7 @@ Iteración 1583: 0.1483 segundos
 Iteración 1584: 0.8659 segundos
 Iteración 1585: 1.6714 segundos
 Iteración 1586: 3.8393 segundos
+Iteración 0: 6.2442 segundos
+Iteración 1: 6.3441 segundos
+Iteración 2: 6.4987 segundos
+Iteración 3: 6.3541 segundos
